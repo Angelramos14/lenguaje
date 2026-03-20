@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino-Objetivos Mobile</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+    <div id="header-container">
+        <h1>Dino-Goals</h1>
+        <div id="score-board">Puntos: <span id="score">0</span></div>
+    </div>
+
+    <div id="game-board">
+        <div id="avatar">👤</div>
+        <div id="cactus">🌵</div>
+
+        <div id="question-modal">
+            <h3 id="question-text">Pregunta</h3>
+            <div id="options-container"></div>
+            <p id="feedback-text"></p>
+        </div>
+
+        <div id="game-over">
+            <h2>¡Fallaste 2 veces!</h2>
+            <button onclick="location.reload()" style="padding: 15px; font-size: 18px;">Intentar de nuevo</button>
+        </div>
+
+        <div id="win-screen">
+            <h2 style="color: green;">¡GANASTE! 🏆</h2>
+            <p>Completaste los 500 puntos.</p>
+            <button onclick="location.reload()" style="padding: 15px; font-size: 18px;">Jugar otra vez</button>
+        </div>
+    </div>
+
+    <button id="start-btn">¡COMENZAR!</button>
+
+    <script>
+        let score = 0;
+        let isPlaying = false;
+        let gameLoop = null;
+        let errores = 0;
+        let aciertos = 0;
+        let cactusPos = 1000;
+        
+        const board = document.getElementById('game-board');
+        const cactus = document.getElementById('cactus');
+        const modal = document.getElementById('question-modal');
+        const availableQuestions = [0, 1, 2, 3, 4, 5, 6, 7];
+
+        const preguntas = [
+            { q: "¿Qué verbo inicia un objetivo general?", options: ["Analizar", "Yo analizo", "Análisis", "Analizado"], correct: 0 },
+            { q: "Para aprobar matemáticas, el objetivo debe ser:", options: ["Estudiar", "Pasar", "Aprobar la asignatura este año", "Sacar 10"], correct: 2 },
+            { q: "¿Cómo debe ser un objetivo según SMART?", options: ["Largo", "Específico y medible", "Secreto", "Imposible"], correct: 1 },
+            { q: "¿Qué le falta a 'Bajar de peso'?", options: ["Color", "Tiempo y cantidad", "Más palabras", "Nada"], correct: 1 },
+            { q: "Un objetivo general es:", options: ["La meta principal", "Un dibujo", "El final", "El nombre"], correct: 0 },
+            { q: "¿Con qué termina un verbo en infinitivo?", options: ["-ado", "-ar, -er, -ir", "-iendo", "-punto"], correct: 1 },
+            { q: "¿Cuántos objetivos generales tiene un proyecto?", options: ["Muchos", "Diez", "Normalmente uno", "Cero"], correct: 2 },
+            { q: "Un objetivo general debe ser:", options: ["Poético", "Alcanzable", "Muy difícil", "Confuso"], correct: 1 }
+        ];
+
+        document.getElementById('start-btn').onclick = function() {
+            this.style.display = 'none';
+            cactusPos = board.offsetWidth;
+            iniciarJuego();
+        };
+
+        function iniciarJuego() {
+            isPlaying = true;
+            if (gameLoop) clearInterval(gameLoop);
+            
+            gameLoop = setInterval(() => {
+                if (!isPlaying) return;
+                
+                cactusPos -= 6; // Velocidad fija
+                cactus.style.right = (board.offsetWidth - cactusPos) + 'px';
+
+                // Colisión (ajustada para el tamaño del avatar)
+                if (cactusPos < 150 && cactusPos > 50) {
+                    isPlaying = false;
+                    lanzarPregunta();
+                }
+
+                if (cactusPos < -150) cactusPos = board.offsetWidth;
+            }, 20);
+        }
+
+        function lanzarPregunta() {
+            const index = Math.floor(Math.random() * availableQuestions.length);
+            const qId = availableQuestions[index];
+            const p = preguntas[qId];
+
+            document.getElementById('question-text').innerText = p.q;
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            document.getElementById('feedback-text').innerText = '';
+
+            p.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if (i === p.correct) {
+                        score += 100;
+                        aciertos++;
+                        document.getElementById('score').innerText = score;
+                        availableQuestions.splice(index, 1);
+                        modal.style.display = 'none';
+                        if (aciertos === 5) {
+                            document.getElementById('win-screen').style.display = 'block';
+                        } else {
+                            cactusPos = board.offsetWidth;
+                            isPlaying = true;
+                        }
+                    } else {
+                        errores++;
+                        if (errores === 1) {
+                            document.getElementById('feedback-text').innerText = "¡Error! Intenta con otra pregunta.";
+                            setTimeout(lanzarPregunta, 1500);
+                        } else {
+                            modal.style.display = 'none';
+                            document.getElementById('game-over').style.display = 'block';
+                        }
+                    }
+                };
+                container.appendChild(btn);
+            });
+            modal.style.display = 'block';
+        }
+    </script>
+    <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js")
+        .then(() => console.log("Service Worker registrado"));
+    }
+  </script>
+</body>
+</html>
