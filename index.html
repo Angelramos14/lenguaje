@@ -1,141 +1,66 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dino-Objetivos Mobile</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <title>Carrera de Dinosaurios - Objetivos Generales</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+  <h1>Code & Goal Dino - Objetivos Generales</h1>
 
-    <div id="header-container">
-        <h1>Dino-Goals</h1>
-        <div id="score-board">Puntos: <span id="score">0</span></div>
+  <div class="jugadores">
+    <input type="text" id="jugador1" placeholder="Nombre del jugador1">
+    <input type="text" id="jugador2" placeholder="Nombre del jugador2">
+    <button onclick="iniciarJuego()">Iniciar Juego</button>
+  </div>
+
+  <!-- Carril superior -->
+  <div class="carril" id="carril1">
+    <div class="dino" id="dino1" style="left:0;">
+      <span class="nombre" id="nombre1"></span>
+      <img src="gallo.jpg" alt="Dino 1">
     </div>
+  </div>
 
-    <div id="game-board">
-        <div id="avatar">👤</div>
-        <div id="cactus">🌵</div>
-
-        <div id="question-modal">
-            <h3 id="question-text">Pregunta</h3>
-            <div id="options-container"></div>
-            <p id="feedback-text"></p>
-        </div>
-
-        <div id="game-over">
-            <h2>¡Fallaste 2 veces!</h2>
-            <button onclick="location.reload()" style="padding: 15px; font-size: 18px;">Intentar de nuevo</button>
-        </div>
-
-        <div id="win-screen">
-            <h2 style="color: green;">¡GANASTE! 🏆</h2>
-            <p>Completaste los 500 puntos.</p>
-            <button onclick="location.reload()" style="padding: 15px; font-size: 18px;">Jugar otra vez</button>
-        </div>
+  <!-- Carril inferior -->
+  <div class="carril" id="carril2">
+    <div class="dino" id="dino2" style="left:0;">
+      <span class="nombre" id="nombre2"></span>
+      <img src="dino.jpg" alt="Dino 2">
     </div>
+  </div>
 
-    <button id="start-btn">¡COMENZAR!</button>
+  <div class="pregunta" id="pregunta"></div>
+  <div class="opciones" id="opciones"></div>
+  <!-- Tarjeta de error -->
+<div id="modalError" class="modal">
+  <div class="modal-contenido">
+    <h2>¡Respuesta incorrecta!</h2>
+    <p>Tu dinosaurio se queda en su lugar.</p>
+    <button onclick="cerrarModal()">Aceptar</button>
+  </div>
+</div>
+<!-- Tarjeta de victoria -->
+<div id="modalVictoria" class="modal">
+  <div class="modal-contenido">
+    <h2>¡Has ganado la carrera!</h2>
+    <p>Felicitaciones, tu dinosaurio llegó a la meta.</p>
+    <p>Un objetivo general es la guia principal que define el proposito de un proyecto;</p>
+    <p>su importancia radica en que da coherencia a todo el trabajo, evita perder el tiempo</p>
+    <p>en tareas innecesarias y permite medir con claridad si se logro el resultado final deseado.</p>
+    <button onclick="cerrarVictoria()">Aceptar</button>
+  </div>
+</div>
+<div style="position: relative; width: 100%; height: 0; padding-top: 56.2500%;
+ padding-bottom: 0; box-shadow: 0 2px 8px 0 rgba(63,69,81,0.16); margin-top: 1.6em; margin-bottom: 0.9em; overflow: hidden;
+ border-radius: 8px; will-change: transform;">
+  <iframe loading="lazy" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0;margin: 0;"
+    src="https://www.canva.com/design/DAHEu_L4ieQ/TJ1MXk4ah_eQDvb1YfZUSA/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen">
+  </iframe>
+</div>
+<a href="https:&#x2F;&#x2F;www.canva.com&#x2F;design&#x2F;DAHEu_L4ieQ&#x2F;TJ1MXk4ah_eQDvb1YfZUSA&#x2F;view?utm_content=DAHEu_L4ieQ&amp;utm_campaign=designshare&amp;utm_medium=embeds&amp;utm_source=link" target="_blank" rel="noopener"></a>
 
-    <script>
-        let score = 0;
-        let isPlaying = false;
-        let gameLoop = null;
-        let errores = 0;
-        let aciertos = 0;
-        let cactusPos = 1000;
-        
-        const board = document.getElementById('game-board');
-        const cactus = document.getElementById('cactus');
-        const modal = document.getElementById('question-modal');
-        const availableQuestions = [0, 1, 2, 3, 4, 5, 6, 7];
-
-        const preguntas = [
-            { q: "¿Qué verbo inicia un objetivo general?", options: ["Analizar", "Yo analizo", "Análisis", "Analizado"], correct: 0 },
-            { q: "Para aprobar matemáticas, el objetivo debe ser:", options: ["Estudiar", "Pasar", "Aprobar la asignatura este año", "Sacar 10"], correct: 2 },
-            { q: "¿Cómo debe ser un objetivo según SMART?", options: ["Largo", "Específico y medible", "Secreto", "Imposible"], correct: 1 },
-            { q: "¿Qué le falta a 'Bajar de peso'?", options: ["Color", "Tiempo y cantidad", "Más palabras", "Nada"], correct: 1 },
-            { q: "Un objetivo general es:", options: ["La meta principal", "Un dibujo", "El final", "El nombre"], correct: 0 },
-            { q: "¿Con qué termina un verbo en infinitivo?", options: ["-ado", "-ar, -er, -ir", "-iendo", "-punto"], correct: 1 },
-            { q: "¿Cuántos objetivos generales tiene un proyecto?", options: ["Muchos", "Diez", "Normalmente uno", "Cero"], correct: 2 },
-            { q: "Un objetivo general debe ser:", options: ["Poético", "Alcanzable", "Muy difícil", "Confuso"], correct: 1 }
-        ];
-
-        document.getElementById('start-btn').onclick = function() {
-            this.style.display = 'none';
-            cactusPos = board.offsetWidth;
-            iniciarJuego();
-        };
-
-        function iniciarJuego() {
-            isPlaying = true;
-            if (gameLoop) clearInterval(gameLoop);
-            
-            gameLoop = setInterval(() => {
-                if (!isPlaying) return;
-                
-                cactusPos -= 6; // Velocidad fija
-                cactus.style.right = (board.offsetWidth - cactusPos) + 'px';
-
-                // Colisión (ajustada para el tamaño del avatar)
-                if (cactusPos < 150 && cactusPos > 50) {
-                    isPlaying = false;
-                    lanzarPregunta();
-                }
-
-                if (cactusPos < -150) cactusPos = board.offsetWidth;
-            }, 20);
-        }
-
-        function lanzarPregunta() {
-            const index = Math.floor(Math.random() * availableQuestions.length);
-            const qId = availableQuestions[index];
-            const p = preguntas[qId];
-
-            document.getElementById('question-text').innerText = p.q;
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
-            document.getElementById('feedback-text').innerText = '';
-
-            p.options.forEach((opt, i) => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = opt;
-                btn.onclick = () => {
-                    if (i === p.correct) {
-                        score += 100;
-                        aciertos++;
-                        document.getElementById('score').innerText = score;
-                        availableQuestions.splice(index, 1);
-                        modal.style.display = 'none';
-                        if (aciertos === 5) {
-                            document.getElementById('win-screen').style.display = 'block';
-                        } else {
-                            cactusPos = board.offsetWidth;
-                            isPlaying = true;
-                        }
-                    } else {
-                        errores++;
-                        if (errores === 1) {
-                            document.getElementById('feedback-text').innerText = "¡Error! Intenta con otra pregunta.";
-                            setTimeout(lanzarPregunta, 1500);
-                        } else {
-                            modal.style.display = 'none';
-                            document.getElementById('game-over').style.display = 'block';
-                        }
-                    }
-                };
-                container.appendChild(btn);
-            });
-            modal.style.display = 'block';
-        }
-    </script>
-    <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js")
-        .then(() => console.log("Service Worker registrado"));
-    }
-  </script>
+  <script src="java.js"></script>
 </body>
 </html>
